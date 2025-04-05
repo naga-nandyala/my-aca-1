@@ -1,0 +1,2 @@
+export RESOURCE_GROUP="az-nagan-contapp"
+az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep 
