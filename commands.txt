@@ -1,2 +1,71 @@
-export RESOURCE_GROUP="az-nagan-contapp"
+export productionResourceGroup="az-nagan-contapp"
 az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep 
+
+
+
+export PRODUCTION_APPLICATION_REGISTRATION='New-AzADApplication'
+
+------------------
+1. workload identify 
+2. grant that identity access to make achanges in azure
+3. use work load identity from our github actions workflow
+------------------
+create an application registration  (template .. we will then create an sp)
+export githubOrganizationName='naga-nandyala'
+export githubRepositoryName='my-aca-1' 
+appRegistration=$(az ad app create --display-name 'healthtrack-production' --query appId --output tsv)
+echo "ApplicationId: $appRegistration"
+
+az ad app federated-credential create --id "$appRegistration" --parameters '{
+  "name": "healthtrackr-production-main",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:'"$githubOrganizationName"'/'"$githubRepositoryName"':ref:refs/heads/main",
+  "description": "GitHub Actions OIDC for main branch",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+
+
+az ad app federated-credential create --id "$appRegistration" --parameters '{
+  "name": "healthtrackr-production-env",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:'"$githubOrganizationName"'/'"$githubRepositoryName"':environment:Production",
+  "description": "GitHub Actions OIDC for Production Environment",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+
+
+
+# create a sp for that app appRegistration
+az ad sp create --id "$appRegistration"
+
+
+# grant owner role
+export productionResourceGroup="az-nagan-contapp"
+subscriptionId=$(az account show --query id -o tsv)
+
+az role assignment create \
+  --assignee "$appRegistration" \
+  --role "Owner" \
+  --scope "/subscriptions/$subscriptionId/resourceGroups/$productionResourceGroup"
+
+# Get the Azure context (subscription and tenant information)
+azureContext=$(az account show --query "{tenantId: tenantId, subscriptionId: id}" -o json)
+
+# Get the application registration AppId (Client ID)
+productionApplicationRegistration=$(az ad app list --display-name "healthtrack-production" --query "[0].appId" -o tsv)
+
+# Extract values from the JSON response
+tenantId=$(echo $azureContext | jq -r .tenantId)
+subscriptionId=$(echo $azureContext | jq -r .subscriptionId)
+
+# Display the values
+echo "AZURE_CLIENT_ID: $productionApplicationRegistration"
+echo "AZURE_TENANT_ID: $tenantId"
+echo "AZURE_SUBSCRIPTION_ID: $subscriptionId"
+
+# create them in github 
+gh secret list --repo $githubOrganizationName/$githubRepositoryName
+gh secret set AZURE_CLIENT_ID --repo $githubOrganizationName/$githubRepositoryName --body $productionApplicationRegistration
+gh secret set AZURE_TENANT_ID --repo $githubOrganizationName/$githubRepositoryName --body $tenantId
+gh secret set AZURE_SUBSCRIPTION_ID --repo $githubOrganizationName/$githubRepositoryName --body $subscriptionId
+gh secret set AZURE_RG_NAME --repo $githubOrganizationName/$githubRepositoryName --body $productionResourceGroup
