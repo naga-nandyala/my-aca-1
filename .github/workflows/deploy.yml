@@ -1,4 +1,5 @@
 # This is a basic workflow to help you get started with Actions
+<<<<<<< HEAD
 
 name: CI
 
@@ -34,3 +35,25 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+=======
+name: Deploy Infra
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Run Bicep Linter
+          run: az bicep build --file ./deploy/main.bicep
+>>>>>>> 4e9b445 (initial commit)
