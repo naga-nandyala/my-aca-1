@@ -1,17 +1,14 @@
-@description('Application suffix that will be applied to all resources')
-param appSuffix string = uniqueString(resourceGroup().id)
-
 @description('The location to deploy all my resources')
 param location string = resourceGroup().location
 
 @description('The name of the log analytics workspace')
-param logAnalyticsWorkspaceName string = 'log-${appSuffix}'
+param logAnalyticsWorkspaceName string
 
 @description('The name of the Application Insights workspace')
-param appInsightsName string = 'appinsights-${appSuffix}'
+param appInsightsName string
 
 @description('The name of the Container App Environment')
-param containerAppEnvironmentName string = 'env${appSuffix}'
+param containerAppEnvName string
 
 var containerAppName = 'hello-world'
 
@@ -35,7 +32,7 @@ resource appInsights 'microsoft.insights/components@2020-02-02' = {
 }
 
 resource env 'Microsoft.App/managedEnvironments@2023-08-01-preview' = {
-  name: containerAppEnvironmentName
+  name: containerAppEnvName
   location: location
   properties: {
     appLogsConfiguration: {
