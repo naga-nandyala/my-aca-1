@@ -1,13 +1,13 @@
 export productionResourceGroup="az-nagan-contapp"
-az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep 
+az deployment group create --resource-group $productionResourceGroup --template-file main.bicep 
 
+az deployment group what-if --resource-group $productionResourceGroup --template-file ./deploy/main.bicep --parameters ./deploy/parameters.prod.json
+az deployment group create --resource-group $productionResourceGroup --template-file ./deploy/main.bicep --parameters ./deploy/parameters.prod.json
 
-
-export PRODUCTION_APPLICATION_REGISTRATION='New-AzADApplication'
 
 ------------------
 1. workload identify 
-2. grant that identity access to make achanges in azure
+2. grant that identity access to make changes in azure
 3. use work load identity from our github actions workflow
 ------------------
 create an application registration  (template .. we will then create an sp)

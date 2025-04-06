@@ -3,13 +3,16 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "appInsightsName": {
-            "value": "ai-healthtrackr-prod"
+            "value": "ai-healthtrkr-prod"
         },
         "containerAppEnvName": {
-            "value": "env-healthtrackr-prod"
+            "value": "env-healthtrkr-prod"
         },
         "logAnalyticsWorkspaceName": {
-            "value": "law-healthtrackr-prod"
-        }
+            "value": "law-healthtrkr-prod"
+        },
+        "containerRegistryName":{
+            "value": "acrnaganhealthtrkrprod"
+        }        
     }
 }
